@@ -1,5 +1,112 @@
 # SHADERed
 
+## Fork
+
+This is a fork providing support for macOS. To build it, I used:
+
+```shell
+git clone https://github.com/dfranx/SHADERed.git
+cd SHADERed
+git submodule update --init --recursive
+brew install sdl2 glew glm
+mkdir build
+cd build
+#sed -i '' 's/bool enable_420pack_extension = true;/bool enable_420pack_extension = false;/' ../libs/SPIRVCross/spirv_glsl.hpp
+cmake ..
+cp -r ../bin/* ./bin/
+make -j8
+cd bin
+./SHADERed
+# Ctrl + C to close
+```
+
+Apply settings after the first run:
+
+```shell
+sed -i '' 's/autoscale=1/autoscale=0/' data/settings.ini
+sed -i '' 's/uiscale=2.[0-9]*/uiscale=1.0/' data/settings.ini
+./SHADERed
+```
+
+### Turn it into a macOS application:
+
+create icon:
+
+```shell
+mkdir SHADERed.iconset
+sips -z 32 32 icon_32x32.png --out SHADERed.iconset
+sips -z 64 64 icon_64x64.png --out SHADERed.iconset/icon_32x32@2x.png
+sips -z 128 128 icon_128x128.png --out SHADERed.iconset
+sips -z 256 256 icon_256x256.png --out SHADERed.iconset
+iconutil -c icns SHADERed.iconset
+rm -r SHADERed.iconset
+```
+
+In Automator, make an application that runs a shell script with the following (select *Pass input: `as arguments`*):
+
+```shell
+/path-to-build-bin-dir/SHADERed $@ > /dev/null 2>&1 &
+```
+
+save the app to `~/Documents/Untitled.app`.
+
+```shell
+cp SHADERed.icns ~/Documents/Untitled.app/Contents/Resources/
+cat <<EOT > ~/Documents/Untitled.app/Contents/Info.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>AMIsApplet</key>
+    <true/>
+    <key>AMStayOpen</key>
+    <false/>
+    <key>CFBundleName</key>
+    <string>SHADERed</string>
+    <key>CFBundleExecutable</key>
+    <string>Automator Application Stub</string>
+    <key>CFBundleVersion</key>
+    <string>1.5.6</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.5.6+macOS</string>
+    <key>CFBundleGetInfoString</key>
+    <string>Fork github.com/clns/SHADERed for macOS, upstream github.com/dfranx/SHADERed</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.shadered</string>
+    <key>CFBundleIconFile</key>
+    <string>SHADERed</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+          <string>sprj</string>
+        </array>
+        <key>CFBundleTypeIconFile</key>
+        <string>SHADERed</string>        
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>LSIsAppleDefaultForType</key>
+        <true/>
+      </dict>
+    </array>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.9</string>
+    <key>LSUIElement</key>
+    <true/>
+  </dict>
+</plist>
+EOT
+```
+
+Rename the app in Finder to `SHADERed.app` and drag it to `/Applications/`.
+
+Some macOS issues that appear to be fixed in this fork are documented here: https://github.com/dfranx/SHADERed/issues/256.
+
+---
+
 SHADERed is a lightweight tool for writing and debugging shaders. It is easy to use,
 open source, cross-platform (runs on Windows, Linux & [Web](https://shadered.org/template)).
 
